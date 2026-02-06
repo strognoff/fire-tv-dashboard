@@ -30,3 +30,26 @@ body {
 .emoji, .emoji-text {
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'EmojiOne Color', 'Twemoji Mozilla', sans-serif;
 }
+
+.nova-face-grid span {
+  animation: pulse 2.8s ease-in-out infinite;
+}
+
+.nova-face-grid span:nth-child(odd) {
+  animation-delay: 0.3s;
+}
+
+.nova-face-grid span:nth-child(3n) {
+  animation-delay: 0.6s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}

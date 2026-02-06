@@ -1,5 +1,54 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+function NovaFace({ mood = 'smile' }) {
+  const glow = mood === 'alert'
+    ? 'shadow-[0_0_28px_rgba(248,113,113,0.7)]'
+    : mood === 'focused'
+      ? 'shadow-[0_0_28px_rgba(99,102,241,0.7)]'
+      : 'shadow-[0_0_32px_rgba(34,211,238,0.7)]';
+
+  const mouthMap = {
+    smile: new Set([21, 22, 23]),
+    focused: new Set([21, 22, 23]),
+    alert: new Set([20, 24]),
+    neutral: new Set([22])
+  };
+
+  const mouth = mouthMap[mood] || mouthMap.neutral;
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl border border-sky-400/50 bg-slate-950/80 ${glow} overflow-hidden`}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.45),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(129,140,248,0.35),transparent_50%)]" />
+        <div className="nova-face-grid relative grid grid-cols-5 grid-rows-5 gap-1 p-2 h-full">
+          {Array.from({ length: 25 }).map((_, idx) => {
+            const isEye = idx === 6 || idx === 8;
+            const isEyeGlow = idx === 16 || idx === 18;
+            const isCore = idx === 12;
+            const isMouth = mouth.has(idx);
+            const mouthColor = mood === 'alert' ? 'bg-rose-300' : mood === 'focused' ? 'bg-indigo-300' : 'bg-emerald-300';
+            const base = 'bg-slate-800/60';
+            const color = isEye
+              ? 'bg-sky-300'
+              : isEyeGlow
+                ? 'bg-sky-400'
+                : isCore
+                  ? 'bg-slate-100'
+                  : isMouth
+                    ? mouthColor
+                    : base;
+            return <span key={idx} className={`rounded-sm ${color}`} />;
+          })}
+        </div>
+      </div>
+      <div className="text-xs text-slate-300">
+        <div className="uppercase tracking-[0.3em] text-slate-500">Nova</div>
+        <div className="text-sky-300 font-semibold">{mood}</div>
+      </div>
+    </div>
+  );
+}
+
 const CLOCK_CITIES = [
   { id: 'london', name: 'London', timezone: 'Europe/London', flagUrl: '/flags/gb.png' },
   { id: 'newyork', name: 'New York', timezone: 'America/New_York', flagUrl: '/flags/us.png' },
@@ -65,6 +114,16 @@ function weatherIcon(code) {
   if ([85, 86].includes(code)) return '🌨️';
   if ([95, 96, 99].includes(code)) return '⛈️';
   return '🌡️';
+}
+
+function weatherMood(code) {
+  if (code === 0) return 'smile';
+  if ([1, 2, 3].includes(code)) return 'neutral';
+  if ([45, 48].includes(code)) return 'focused';
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return 'focused';
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return 'alert';
+  if ([95, 96, 99].includes(code)) return 'alert';
+  return 'neutral';
 }
 
 export default function App() {
@@ -182,18 +241,6 @@ export default function App() {
     (async () => {
       const sources = [
         async () => {
-          const resp = await fetch('https://hn.algolia.com/api/v1/search?tags=front_page');
-          if (!resp.ok) throw new Error('hn failed');
-          const data = await resp.json();
-          const hits = data?.hits || [];
-          return hits.slice(0, 5).map((item, idx) => ({
-            id: item.objectID || `${idx}-${item.title}`,
-            title: item.title,
-            source: 'Hacker News',
-            time: item.created_at ? new Date(item.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''
-          }));
-        },
-        async () => {
           const resp = await fetch('https://api.gdeltproject.org/api/v2/doc/doc?format=json&maxrecords=5&mode=ArtList');
           if (!resp.ok) throw new Error('gdelt failed');
           const data = await resp.json();
@@ -233,16 +280,20 @@ export default function App() {
     return () => clearInterval(id);
   }, [news]);
 
+
   const weatherUpdated = useMemo(() => {
     if (!weather?.updatedAt) return '—';
     return new Date(weather.updatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   }, [weather]);
 
+  const novaMood = useMemo(() => weatherMood(weather?.weathercode), [weather]);
+
   return (
     <div className="min-h-screen bg-[#0b0f17] text-white p-4 relative grid grid-rows-[auto_1fr_auto] gap-3">
-      <header className="flex items-start justify-between">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(56,189,248,0.2),transparent_45%),radial-gradient(circle_at_80%_100%,rgba(99,102,241,0.2),transparent_45%)]" />
+      <header className="relative flex items-start justify-between">
         <div>
-          <h1 className="text-4xl font-semibold">Nova Work Dashboard</h1>
+          <h1 className="text-4xl font-semibold tracking-tight">Nova Work Dashboard</h1>
           <div className="mt-2 flex items-center gap-3">
             <p className="text-lg text-slate-300">World clocks • Weather • News</p>
             {isOffline && (
@@ -251,8 +302,11 @@ export default function App() {
               </span>
             )}
           </div>
+          <div className="mt-3">
+            <NovaFace mood={novaMood} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 w-72">
+        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur p-5 w-72">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Local Weather</div>
           <div className="mt-2 text-lg text-slate-300">{localCity?.name || 'Detecting…'}</div>
           <div className="mt-2 flex items-center gap-3 text-4xl font-semibold">
@@ -272,7 +326,7 @@ export default function App() {
 
       <main className="grid grid-cols-1 min-h-0">
         <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 h-full overflow-hidden">
-          <div className="text-sm uppercase tracking-[0.3em] text-slate-400">World Clocks</div>
+          <div className="text-sm uppercase tracking-[0.3em] text-slate-400">🕒 World Clocks</div>
           <div className="mt-6 grid grid-cols-2 gap-6">
             {CLOCK_CITIES.map(city => (
               <button
@@ -296,21 +350,23 @@ export default function App() {
         </section>
       </main>
 
-      <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 min-h-[18vh]">
-        <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Top Headlines</div>
-        {newsStatus === 'error' && (
-          <div className="mt-3 text-sm text-rose-300">News unavailable. Showing cached items if available.</div>
-        )}
-        {newsStatus === 'cached' && (
-          <div className="mt-3 text-sm text-sky-300">Showing cached headlines.</div>
-        )}
-        <div className="mt-4">
+      <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 h-[18vh]">
+        <div className="flex items-center gap-4">
+          <div className="text-sm uppercase tracking-[0.3em] text-slate-400">📰 Top Headlines</div>
+          {newsStatus === 'error' && (
+            <div className="text-sm text-rose-300">News unavailable. Cached if available.</div>
+          )}
+          {newsStatus === 'cached' && (
+            <div className="text-sm text-sky-300">Cached</div>
+          )}
+        </div>
+        <div className="mt-4 h-[calc(100%-2rem)]">
           {(() => {
             const items = news.length ? news : [{ id: 'empty', title: 'Loading headlines…', source: 'News', time: '' }];
             const index = newsIndex % items.length;
             const item = items[index];
             return (
-              <button className="w-full text-left rounded-xl border border-slate-800 bg-slate-950/60 p-4 focus:outline-none focus:ring-2 focus:ring-sky-400">
+              <button className="w-full h-full text-left rounded-xl border border-slate-800 bg-slate-950/60 p-4 focus:outline-none focus:ring-2 focus:ring-sky-400">
                 <div className="text-slate-400 text-sm mb-2">Headline {index + 1} of {items.length}</div>
                 <div className="text-slate-200 text-xl leading-snug line-clamp-2">{item.title}</div>
                 <div className="text-sm text-slate-500 mt-2">{item.source}{item.time ? ` · ${item.time}` : ''}</div>
