@@ -355,7 +355,7 @@ export default function App() {
         </div>
         <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur p-5 w-72">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Local Weather</div>
-          <div className="mt-2 text-lg text-slate-300">{localCity?.name || 'Detecting…'}</div>
+          <div className="mt-2 text-lg text-slate-300">{weather?.city || localCity?.name || 'Detecting…'}</div>
           <div className="mt-2 flex items-center gap-3 text-4xl font-semibold">
             <span className="text-4xl">{weatherIcon(weather?.weathercode)}</span>
             <span>{weather?.temperature ?? '--'}°</span>
