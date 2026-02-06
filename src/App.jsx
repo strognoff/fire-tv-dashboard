@@ -17,7 +17,7 @@ function NovaFace({ mood = 'smile' }) {
   const mouth = mouthMap[mood] || mouthMap.neutral;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 nova-face">
       <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl border border-sky-400/50 bg-slate-950/80 ${glow} overflow-hidden`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.45),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(129,140,248,0.35),transparent_50%)]" />
         <div className="nova-face-grid relative grid grid-cols-5 grid-rows-5 gap-1 p-2 h-full">
@@ -289,7 +289,7 @@ export default function App() {
   const novaMood = useMemo(() => weatherMood(weather?.weathercode), [weather]);
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-white p-4 relative grid grid-rows-[auto_1fr_auto] gap-3">
+    <div className="min-h-screen bg-[#0b0f17] text-white p-4 relative flex flex-col gap-3">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(56,189,248,0.2),transparent_45%),radial-gradient(circle_at_80%_100%,rgba(99,102,241,0.2),transparent_45%)]" />
       <header className="relative flex items-start justify-between">
         <div>
@@ -324,7 +324,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="grid grid-cols-1 min-h-0">
+      <main className="flex-1 min-h-0">
         <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 h-full overflow-hidden">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">🕒 World Clocks</div>
           <div className="mt-6 grid grid-cols-2 gap-6">
@@ -350,7 +350,7 @@ export default function App() {
         </section>
       </main>
 
-      <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 h-[18vh]">
+      <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-4 h-[180px] flex flex-col">
         <div className="flex items-center gap-4">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">📰 Top Headlines</div>
           {newsStatus === 'error' && (
@@ -360,7 +360,7 @@ export default function App() {
             <div className="text-sm text-sky-300">Cached</div>
           )}
         </div>
-        <div className="mt-4 h-[calc(100%-2rem)]">
+        <div className="mt-3 flex-1">
           {(() => {
             const items = news.length ? news : [{ id: 'empty', title: 'Loading headlines…', source: 'News', time: '' }];
             const index = newsIndex % items.length;
