@@ -74,11 +74,23 @@ export default function App() {
   const [weatherStatus, setWeatherStatus] = useState('loading');
   const [news, setNews] = useState([]);
   const [newsStatus, setNewsStatus] = useState('loading');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const newsFetchedRef = useRef(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const onOnline = () => setIsOffline(false);
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -208,7 +220,14 @@ export default function App() {
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-4xl font-semibold">Fire TV Dashboard</h1>
-          <p className="text-lg text-slate-300">World clocks • Weather • News</p>
+          <div className="mt-2 flex items-center gap-3">
+            <p className="text-lg text-slate-300">World clocks • Weather • News</p>
+            {isOffline && (
+              <span className="text-sm px-3 py-1 rounded-full border border-rose-400/60 text-rose-300 bg-rose-500/10">
+                Offline mode
+              </span>
+            )}
+          </div>
         </div>
         <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 w-80">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Local Weather</div>
@@ -223,6 +242,7 @@ export default function App() {
           <div className="mt-2 text-sm text-slate-500">
             {weatherStatus === 'needs-city' && 'Set your city'}
             {weatherStatus !== 'needs-city' && `Last updated ${weatherUpdated}`}
+            {weatherStatus === 'cached' && ' · Cached'}
           </div>
         </div>
       </header>
@@ -256,6 +276,9 @@ export default function App() {
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Top Headlines</div>
           {newsStatus === 'error' && (
             <div className="mt-3 text-sm text-rose-300">News unavailable. Showing cached items if available.</div>
+          )}
+          {newsStatus === 'cached' && (
+            <div className="mt-3 text-sm text-sky-300">Showing cached headlines.</div>
           )}
           <ul className="mt-5 space-y-4 text-base">
             {(news.length ? news : [{ id: 'empty', title: 'Loading headlines…', source: 'News', time: '' }]).map(item => (
