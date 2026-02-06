@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-function NovaFace({ mood = 'smile' }) {
+function NovaFace({ mood = 'smile', size = 112 }) {
   const glow = mood === 'alert'
     ? 'shadow-[0_0_28px_rgba(248,113,113,0.7)]'
     : mood === 'focused'
@@ -18,7 +18,10 @@ function NovaFace({ mood = 'smile' }) {
 
   return (
     <div className="flex items-center gap-3 nova-face">
-      <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl border border-sky-400/50 bg-slate-950/80 ${glow} overflow-hidden`}>
+      <div
+        className={`relative rounded-2xl border border-sky-400/50 bg-slate-950/80 ${glow} overflow-hidden`}
+        style={{ width: size, height: size }}
+      >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.45),transparent_55%),radial-gradient(circle_at_80%_100%,rgba(129,140,248,0.35),transparent_50%)]" />
         <div className="nova-face-grid relative grid grid-cols-5 grid-rows-5 gap-1 p-2 h-full">
           {Array.from({ length: 25 }).map((_, idx) => {
@@ -41,9 +44,9 @@ function NovaFace({ mood = 'smile' }) {
           })}
         </div>
       </div>
-      <div className="text-xs text-slate-300">
-        <div className="uppercase tracking-[0.3em] text-slate-500">Nova</div>
-        <div className="text-sky-300 font-semibold">{mood}</div>
+      <div className="text-base text-slate-300">
+        <div className="uppercase tracking-[0.3em] text-slate-400 text-2xl">NOVA</div>
+        <div className="text-sky-300 font-semibold text-xl">{mood}</div>
       </div>
     </div>
   );
@@ -288,15 +291,15 @@ export default function App() {
     (async () => {
       const sources = [
         async () => {
-          const resp = await fetch('https://api.gdeltproject.org/api/v2/doc/doc?format=json&maxrecords=5&mode=ArtList');
-          if (!resp.ok) throw new Error('gdelt failed');
+          const resp = await fetch('https://hn.algolia.com/api/v1/search?tags=front_page');
+          if (!resp.ok) throw new Error('hn failed');
           const data = await resp.json();
-          const articles = data?.articles || [];
-          return articles.slice(0, 5).map((item, idx) => ({
-            id: item.seendate || `${idx}-${item.title}`,
+          const hits = data?.hits || [];
+          return hits.slice(0, 5).map((item, idx) => ({
+            id: item.objectID || `${idx}-${item.title}`,
             title: item.title,
-            source: item.sourcecountry || item.source || 'GDELT',
-            time: item.seendate ? new Date(item.seendate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''
+            source: 'Hacker News',
+            time: item.created_at ? new Date(item.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''
           }));
         }
       ];
@@ -349,25 +352,25 @@ export default function App() {
               </span>
             )}
           </div>
-          <div className="mt-3">
-            <NovaFace mood={novaMood} />
-          </div>
         </div>
-        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur p-5 w-72">
-          <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Local Weather</div>
-          <div className="mt-2 text-lg text-slate-300">{weather?.city || localCity?.name || 'Detecting…'}</div>
-          <div className="mt-2 flex items-center gap-3 text-4xl font-semibold">
-            <span className="text-4xl">{weatherIcon(weather?.weathercode)}</span>
-            <span>{weather?.temperature ?? '--'}°</span>
-          </div>
-          <div className="text-sm text-slate-400">
-            Hi {weather?.hi ?? '--'}° / Lo {weather?.lo ?? '--'}°
-          </div>
-          <div className="mt-2 text-sm text-slate-500">
-            {weatherStatus === 'needs-city' && 'Set your city'}
-            {weatherStatus !== 'needs-city' && `Last updated ${weatherUpdated}`}
-            {weatherStatus === 'cached' && ' · Cached'}
-            {weatherStatus !== 'needs-city' && ` · Next in ${weatherCountdown}s`}
+        <div className="flex items-start gap-3 h-[190px]">
+          <NovaFace mood={novaMood} size={190} />
+          <div className="rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur p-5 w-[260px] h-full">
+            <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Local Weather</div>
+            <div className="mt-2 text-lg text-slate-300">{weather?.city || localCity?.name || 'Detecting…'}</div>
+            <div className="mt-2 flex items-center gap-3 text-4xl font-semibold">
+              <span className="text-4xl">{weatherIcon(weather?.weathercode)}</span>
+              <span>{weather?.temperature ?? '--'}°</span>
+            </div>
+            <div className="text-sm text-slate-400">
+              Hi {weather?.hi ?? '--'}° / Lo {weather?.lo ?? '--'}°
+            </div>
+            <div className="mt-2 text-sm text-slate-500">
+              {weatherStatus === 'needs-city' && 'Set your city'}
+              {weatherStatus !== 'needs-city' && `Last updated ${weatherUpdated}`}
+              {weatherStatus === 'cached' && ' · Cached'}
+              {weatherStatus !== 'needs-city' && ` · Next in ${weatherCountdown}s`}
+            </div>
           </div>
         </div>
       </header>
