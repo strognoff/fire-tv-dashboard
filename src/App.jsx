@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const CLOCK_CITIES = [
-  { id: 'london', name: 'London', timezone: 'Europe/London', flag: '🇬🇧' },
-  { id: 'newyork', name: 'New York', timezone: 'America/New_York', flag: '🇺🇸' },
-  { id: 'bangalore', name: 'Bangalore', timezone: 'Asia/Kolkata', flag: '🇮🇳' },
-  { id: 'sydney', name: 'Sydney', timezone: 'Australia/Sydney', flag: '🇦🇺' },
-  { id: 'dubai', name: 'Dubai', timezone: 'Asia/Dubai', flag: '🇦🇪' },
-  { id: 'lisbon', name: 'Lisbon', timezone: 'Europe/Lisbon', flag: '🇵🇹' }
+  { id: 'london', name: 'London', timezone: 'Europe/London', flagUrl: '/flags/gb.png' },
+  { id: 'newyork', name: 'New York', timezone: 'America/New_York', flagUrl: '/flags/us.png' },
+  { id: 'bangalore', name: 'Bangalore', timezone: 'Asia/Kolkata', flagUrl: '/flags/in.png' },
+  { id: 'sydney', name: 'Sydney', timezone: 'Australia/Sydney', flagUrl: '/flags/au.png' },
+  { id: 'dubai', name: 'Dubai', timezone: 'Asia/Dubai', flagUrl: '/flags/ae.png' },
+  { id: 'lisbon', name: 'Lisbon', timezone: 'Europe/Lisbon', flagUrl: '/flags/pt.png' }
 ];
 
 const TIMEZONE_CITY_MAP = {
@@ -236,7 +236,15 @@ export default function App() {
                 key={city.id}
                 className="rounded-2xl border border-slate-700 bg-slate-950/60 p-7 text-left focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
-                <div className="text-lg text-slate-300">{city.flag} {city.name}</div>
+                <div className="text-lg text-slate-300 flex items-center gap-2">
+                  <img
+                    src={city.flagUrl}
+                    alt=""
+                    className="w-6 h-4 rounded-sm border border-slate-700"
+                    loading="lazy"
+                  />
+                  <span>{city.name}</span>
+                </div>
                 <div className="text-5xl font-semibold tracking-wide">{formatTime(now, city.timezone)}</div>
                 <div className="text-base text-slate-500">{formatDate(now, city.timezone)}</div>
               </button>

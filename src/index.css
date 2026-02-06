@@ -10,3 +10,8 @@ body {
   background: #0b0f17;
   color: #e5e7eb;
 }
+
+/* Ensure emoji glyphs render on TV webviews */
+.emoji, .emoji-text {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'EmojiOne Color', 'Twemoji Mozilla', sans-serif;
+}
