@@ -4,7 +4,7 @@ const CLOCK_CITIES = [
   { id: 'london', name: 'London', timezone: 'Europe/London', flagUrl: '/flags/gb.png' },
   { id: 'newyork', name: 'New York', timezone: 'America/New_York', flagUrl: '/flags/us.png' },
   { id: 'bangalore', name: 'Bangalore', timezone: 'Asia/Kolkata', flagUrl: '/flags/in.png' },
-  { id: 'sydney', name: 'Sydney', timezone: 'Australia/Sydney', flagUrl: '/flags/au.png' },
+  { id: 'saopaulo', name: 'São Paulo', timezone: 'America/Sao_Paulo', flagUrl: '/flags/br.png' },
   { id: 'dubai', name: 'Dubai', timezone: 'Asia/Dubai', flagUrl: '/flags/ae.png' },
   { id: 'lisbon', name: 'Lisbon', timezone: 'Europe/Lisbon', flagUrl: '/flags/pt.png' }
 ];
@@ -239,7 +239,7 @@ export default function App() {
   }, [weather]);
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-white p-8 relative grid grid-rows-[auto_1fr_auto] gap-4">
+    <div className="min-h-screen bg-[#0b0f17] text-white p-4 relative grid grid-rows-[auto_1fr_auto] gap-3">
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-4xl font-semibold">Nova Work Dashboard</h1>
@@ -252,7 +252,7 @@ export default function App() {
             )}
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 w-80">
+        <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 w-72">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Local Weather</div>
           <div className="mt-2 text-lg text-slate-300">{localCity?.name || 'Detecting…'}</div>
           <div className="mt-2 flex items-center gap-3 text-4xl font-semibold">
@@ -270,8 +270,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="grid grid-cols-1">
-        <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8 h-full overflow-hidden">
+      <main className="grid grid-cols-1 min-h-0">
+        <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 h-full overflow-hidden">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">World Clocks</div>
           <div className="mt-6 grid grid-cols-2 gap-6">
             {CLOCK_CITIES.map(city => (
@@ -296,7 +296,7 @@ export default function App() {
         </section>
       </main>
 
-      <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+      <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 min-h-[18vh]">
         <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Top Headlines</div>
         {newsStatus === 'error' && (
           <div className="mt-3 text-sm text-rose-300">News unavailable. Showing cached items if available.</div>
@@ -320,7 +320,7 @@ export default function App() {
         </div>
       </section>
 
-      <div className="absolute left-6 bottom-4 text-sm text-slate-500">
+      <div className="absolute left-4 bottom-3 text-sm text-slate-500">
         v{import.meta.env.VITE_APP_VERSION}
       </div>
     </div>
