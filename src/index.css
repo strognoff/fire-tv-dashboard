@@ -11,6 +11,21 @@ body {
   color: #e5e7eb;
 }
 
+:root {
+  --ui-scale: 1;
+}
+
+#root {
+  transform: scale(var(--ui-scale));
+  transform-origin: top left;
+  width: calc(100% / var(--ui-scale));
+}
+
+#root > * {
+  height: auto !important;
+  min-height: 100vh;
+}
+
 /* Ensure emoji glyphs render on TV webviews */
 .emoji, .emoji-text {
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'EmojiOne Color', 'Twemoji Mozilla', sans-serif;

@@ -1,10 +1,11 @@
 {
   "name": "fire-tv-dashboard",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node ./scripts/bump-version.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

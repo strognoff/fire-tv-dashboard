@@ -75,11 +75,26 @@ export default function App() {
   const [news, setNews] = useState([]);
   const [newsStatus, setNewsStatus] = useState('loading');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [newsIndex, setNewsIndex] = useState(0);
   const newsFetchedRef = useRef(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const baseWidth = 1920;
+    const baseHeight = 1080;
+    const applyScale = () => {
+      const w = window.innerWidth || baseWidth;
+      const h = window.innerHeight || baseHeight;
+      const scale = Math.min(w / baseWidth, h / baseHeight);
+      document.documentElement.style.setProperty('--ui-scale', `${scale.toFixed(3)}`);
+    };
+    applyScale();
+    window.addEventListener('resize', applyScale);
+    return () => window.removeEventListener('resize', applyScale);
   }, []);
 
   useEffect(() => {
@@ -210,16 +225,24 @@ export default function App() {
     })();
   }, []);
 
+  useEffect(() => {
+    if (!news.length) return;
+    const id = setInterval(() => {
+      setNewsIndex(prev => (prev + 1) % news.length);
+    }, 8000);
+    return () => clearInterval(id);
+  }, [news]);
+
   const weatherUpdated = useMemo(() => {
     if (!weather?.updatedAt) return '—';
     return new Date(weather.updatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   }, [weather]);
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-white p-10">
+    <div className="min-h-screen bg-[#0b0f17] text-white p-8 relative grid grid-rows-[auto_1fr_auto] gap-4">
       <header className="flex items-start justify-between">
         <div>
-          <h1 className="text-4xl font-semibold">Fire TV Dashboard</h1>
+          <h1 className="text-4xl font-semibold">Nova Work Dashboard</h1>
           <div className="mt-2 flex items-center gap-3">
             <p className="text-lg text-slate-300">World clocks • Weather • News</p>
             {isOffline && (
@@ -247,8 +270,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mt-8 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-        <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8">
+      <main className="grid grid-cols-1">
+        <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8 h-full overflow-hidden">
           <div className="text-sm uppercase tracking-[0.3em] text-slate-400">World Clocks</div>
           <div className="mt-6 grid grid-cols-2 gap-6">
             {CLOCK_CITIES.map(city => (
@@ -271,27 +294,35 @@ export default function App() {
             ))}
           </div>
         </section>
-
-        <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8">
-          <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Top Headlines</div>
-          {newsStatus === 'error' && (
-            <div className="mt-3 text-sm text-rose-300">News unavailable. Showing cached items if available.</div>
-          )}
-          {newsStatus === 'cached' && (
-            <div className="mt-3 text-sm text-sky-300">Showing cached headlines.</div>
-          )}
-          <ul className="mt-5 space-y-4 text-base">
-            {(news.length ? news : [{ id: 'empty', title: 'Loading headlines…', source: 'News', time: '' }]).map(item => (
-              <li key={item.id}>
-                <button className="w-full text-left rounded-xl border border-slate-800 bg-slate-950/60 p-4 focus:outline-none focus:ring-2 focus:ring-sky-400">
-                  <div className="text-slate-200 text-lg">{item.title}</div>
-                  <div className="text-sm text-slate-500">{item.source}{item.time ? ` · ${item.time}` : ''}</div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
       </main>
+
+      <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+        <div className="text-sm uppercase tracking-[0.3em] text-slate-400">Top Headlines</div>
+        {newsStatus === 'error' && (
+          <div className="mt-3 text-sm text-rose-300">News unavailable. Showing cached items if available.</div>
+        )}
+        {newsStatus === 'cached' && (
+          <div className="mt-3 text-sm text-sky-300">Showing cached headlines.</div>
+        )}
+        <div className="mt-4">
+          {(() => {
+            const items = news.length ? news : [{ id: 'empty', title: 'Loading headlines…', source: 'News', time: '' }];
+            const index = newsIndex % items.length;
+            const item = items[index];
+            return (
+              <button className="w-full text-left rounded-xl border border-slate-800 bg-slate-950/60 p-4 focus:outline-none focus:ring-2 focus:ring-sky-400">
+                <div className="text-slate-400 text-sm mb-2">Headline {index + 1} of {items.length}</div>
+                <div className="text-slate-200 text-xl leading-snug line-clamp-2">{item.title}</div>
+                <div className="text-sm text-slate-500 mt-2">{item.source}{item.time ? ` · ${item.time}` : ''}</div>
+              </button>
+            );
+          })()}
+        </div>
+      </section>
+
+      <div className="absolute left-6 bottom-4 text-sm text-slate-500">
+        v{import.meta.env.VITE_APP_VERSION}
+      </div>
     </div>
   );
 }
