@@ -99,18 +99,31 @@ Use a JSON‑first news source with CORS support (avoid RSS):
 
 ---
 
-## Fire TV Packaging (two options)
-### Option A — Capacitor (recommended)
-1. `npm install @capacitor/core @capacitor/cli`
-2. `npx cap init`
-3. `npm run build`
-4. `npx cap add android`
-5. `npx cap open android`
-6. Build signed APK/AAB in Android Studio
+## Fire TV Packaging (Capacitor)
+This project is already configured for Capacitor.
 
-### Option B — Native Android TV WebView
-- Kotlin shell app with a WebView pointing to bundled local assets
-- Uses `assets/` or `file:///android_asset/` to load the Vite build
+### Quick build
+```bash
+npm run build
+npx cap sync android
+npx cap open android
+```
+
+### First‑time setup (already done here)
+```bash
+npm install @capacitor/core @capacitor/cli @capacitor/android
+npx cap init "Fire TV Dashboard" "com.nova.firetvdashboard" --web-dir dist
+npx cap add android
+```
+
+### APK/AAB release
+Build a signed APK/AAB from **Android Studio** → Build → Generate Signed Bundle/APK.
+
+---
+
+### Notes
+- Web assets live in `dist/` and are copied into `android/app/src/main/assets/public`.
+- Edit the Android project in `android/` if you need Fire TV‑specific launchers or banners.
 
 ---
 
