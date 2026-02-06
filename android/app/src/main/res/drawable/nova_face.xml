@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+  <!-- Eyes -->
+  <path android:fillColor="#7DD3FC" android:pathData="M24,28 h12 v12 h-12 z" />
+  <path android:fillColor="#7DD3FC" android:pathData="M64,28 h12 v12 h-12 z" />
+  <!-- Eye glow -->
+  <path android:fillColor="#38BDF8" android:pathData="M24,44 h12 v12 h-12 z" />
+  <path android:fillColor="#38BDF8" android:pathData="M64,44 h12 v12 h-12 z" />
+  <!-- Core -->
+  <path android:fillColor="#E2E8F0" android:pathData="M44,44 h12 v12 h-12 z" />
+  <!-- Mouth (smile) -->
+  <path android:fillColor="#34D399" android:pathData="M32,68 h12 v12 h-12 z" />
+  <path android:fillColor="#34D399" android:pathData="M46,68 h12 v12 h-12 z" />
+  <path android:fillColor="#34D399" android:pathData="M60,68 h12 v12 h-12 z" />
+</vector>

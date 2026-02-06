@@ -50,12 +50,12 @@ function NovaFace({ mood = 'smile' }) {
 }
 
 const CLOCK_CITIES = [
-  { id: 'london', name: 'London', timezone: 'Europe/London', flagUrl: '/flags/gb.png' },
-  { id: 'newyork', name: 'New York', timezone: 'America/New_York', flagUrl: '/flags/us.png' },
-  { id: 'bangalore', name: 'Bangalore', timezone: 'Asia/Kolkata', flagUrl: '/flags/in.png' },
-  { id: 'saopaulo', name: 'São Paulo', timezone: 'America/Sao_Paulo', flagUrl: '/flags/br.png' },
-  { id: 'dubai', name: 'Dubai', timezone: 'Asia/Dubai', flagUrl: '/flags/ae.png' },
-  { id: 'lisbon', name: 'Lisbon', timezone: 'Europe/Lisbon', flagUrl: '/flags/pt.png' }
+  { id: 'london', name: 'London', timezone: 'Europe/London', lat: 51.5074, lon: -0.1278, flagUrl: '/flags/gb.png' },
+  { id: 'newyork', name: 'New York', timezone: 'America/New_York', lat: 40.7128, lon: -74.006, flagUrl: '/flags/us.png' },
+  { id: 'bangalore', name: 'Bangalore', timezone: 'Asia/Kolkata', lat: 12.9716, lon: 77.5946, flagUrl: '/flags/in.png' },
+  { id: 'saopaulo', name: 'São Paulo', timezone: 'America/Sao_Paulo', lat: -23.5558, lon: -46.6396, flagUrl: '/flags/br.png' },
+  { id: 'dubai', name: 'Dubai', timezone: 'Asia/Dubai', lat: 25.2048, lon: 55.2708, flagUrl: '/flags/ae.png' },
+  { id: 'lisbon', name: 'Lisbon', timezone: 'Europe/Lisbon', lat: 38.7223, lon: -9.1393, flagUrl: '/flags/pt.png' }
 ];
 
 const TIMEZONE_CITY_MAP = {
@@ -70,6 +70,7 @@ const TIMEZONE_CITY_MAP = {
 
 const WEATHER_CACHE_KEY = 'ftd-weather-cache-v1';
 const NEWS_CACHE_KEY = 'ftd-news-cache-v1';
+const WEATHER_ROTATE_MS = 30_000;
 
 function formatTime(date, timezone) {
   return new Intl.DateTimeFormat('en-GB', {
@@ -135,6 +136,8 @@ export default function App() {
   const [newsStatus, setNewsStatus] = useState('loading');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [newsIndex, setNewsIndex] = useState(0);
+  const [activeWeatherId, setActiveWeatherId] = useState('local');
+  const [weatherCountdown, setWeatherCountdown] = useState(WEATHER_ROTATE_MS / 1000);
   const newsFetchedRef = useRef(false);
 
   useEffect(() => {
@@ -191,13 +194,57 @@ export default function App() {
     })();
   }, []);
 
+  const weatherCities = useMemo(() => {
+    const list = [];
+    if (localCity?.lat && localCity?.lon) {
+      list.push({
+        id: 'local',
+        name: localCity.name || 'Local',
+        lat: localCity.lat,
+        lon: localCity.lon,
+        timezone: localCity.timezone
+      });
+    }
+    list.push(...CLOCK_CITIES.map(city => ({
+      id: city.id,
+      name: city.name,
+      lat: city.lat,
+      lon: city.lon,
+      timezone: city.timezone
+    })));
+    return list;
+  }, [localCity]);
+
   useEffect(() => {
-    if (!localCity?.lat || !localCity?.lon) {
+    if (!weatherCities.length) return;
+    setActiveWeatherId('local');
+    setWeatherCountdown(WEATHER_ROTATE_MS / 1000);
+    let idx = 0;
+    const rotateId = setInterval(() => {
+      idx = (idx + 1) % weatherCities.length;
+      setActiveWeatherId(weatherCities[idx].id);
+      setWeatherCountdown(WEATHER_ROTATE_MS / 1000);
+    }, WEATHER_ROTATE_MS);
+
+    const tickId = setInterval(() => {
+      setWeatherCountdown(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => {
+      clearInterval(rotateId);
+      clearInterval(tickId);
+    };
+  }, [weatherCities]);
+
+  useEffect(() => {
+    const active = weatherCities.find(city => city.id === activeWeatherId) || weatherCities[0];
+    if (!active?.lat || !active?.lon) {
       setWeatherStatus('needs-city');
       return;
     }
 
-    const cache = safeParse(WEATHER_CACHE_KEY);
+    const cacheKey = `${WEATHER_CACHE_KEY}-${active.id}`;
+    const cache = safeParse(cacheKey);
     const fifteenMinutes = 15 * 60 * 1000;
     if (cache?.data && Date.now() - cache.updatedAt < fifteenMinutes) {
       setWeather(cache.data);
@@ -206,12 +253,12 @@ export default function App() {
 
     (async () => {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${localCity.lat}&longitude=${localCity.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=${encodeURIComponent(localCity.timezone)}`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${active.lat}&longitude=${active.lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=${encodeURIComponent(active.timezone)}`;
         const resp = await fetch(url);
         if (!resp.ok) throw new Error('weather fetch failed');
         const data = await resp.json();
         const payload = {
-          city: localCity.name,
+          city: active.name,
           updatedAt: Date.now(),
           temperature: data?.current_weather?.temperature,
           weathercode: data?.current_weather?.weathercode,
@@ -220,12 +267,12 @@ export default function App() {
         };
         setWeather(payload);
         setWeatherStatus('live');
-        saveCache(WEATHER_CACHE_KEY, { updatedAt: Date.now(), data: payload });
+        saveCache(cacheKey, { updatedAt: Date.now(), data: payload });
       } catch {
         if (!cache?.data) setWeatherStatus('error');
       }
     })();
-  }, [localCity]);
+  }, [activeWeatherId, weatherCities]);
 
   useEffect(() => {
     if (newsFetchedRef.current) return;
@@ -320,6 +367,7 @@ export default function App() {
             {weatherStatus === 'needs-city' && 'Set your city'}
             {weatherStatus !== 'needs-city' && `Last updated ${weatherUpdated}`}
             {weatherStatus === 'cached' && ' · Cached'}
+            {weatherStatus !== 'needs-city' && ` · Next in ${weatherCountdown}s`}
           </div>
         </div>
       </header>
@@ -331,7 +379,7 @@ export default function App() {
             {CLOCK_CITIES.map(city => (
               <button
                 key={city.id}
-                className="rounded-2xl border border-slate-700 bg-slate-950/60 p-7 text-left focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className={`rounded-2xl border p-7 text-left focus:outline-none focus:ring-2 focus:ring-sky-400 ${activeWeatherId === city.id ? 'border-sky-400 bg-slate-900/70 shadow-[0_0_12px_rgba(56,189,248,0.35)]' : 'border-slate-700 bg-slate-950/60'}`}
               >
                 <div className="text-lg text-slate-300 flex items-center gap-2">
                   <img
